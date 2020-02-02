@@ -6,6 +6,7 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import net.andrasia.kiryu144.kiryuchat.KiryuChat;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ChatMessageType;
@@ -19,8 +20,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
@@ -31,24 +30,30 @@ public class PlayerChatManager implements Listener {
 
     public PlayerChatManager() {
         ProtocolLibrary.getProtocolManager().addPacketListener(
-            new PacketAdapter(KiryuChat.instance, ListenerPriority.NORMAL, PacketType.Play.Server.CHAT) {
+            new PacketAdapter(KiryuChat.instance, ListenerPriority.HIGHEST, PacketType.Play.Server.CHAT) {
                 @Override
                 public void onPacketSending(PacketEvent event) {
+                    if(event.isCancelled()){
+                        return;
+                    }
+
                     EnumWrappers.ChatType chatType = event.getPacket().getChatTypes().read(0);
                     if(chatType.equals(EnumWrappers.ChatType.SYSTEM)){
                         event.setCancelled(true);
                         TextComponent system = new TextComponent("System ");
                         system.setColor(ChatColor.DARK_GREEN);
 
-                        try {
-                            BaseComponent[] messages = ComponentSerializer.parse(event.getPacket().getChatComponents().getValues().get(0).getJson());
-                            for(BaseComponent component : messages){
-                                component.setColor(ChatColor.GREEN);
-                                system.addExtra(component);
-                            }
-                        }catch(Throwable exception) {
-                            system.addExtra(String.format("{Exception @ %s}", DateTimeFormatter.ofPattern("HH:mm:ss").format(LocalDateTime.now())));
-                            exception.printStackTrace();
+                        String jsonMessage = null;
+                        WrappedChatComponent wrappedChatComponent = event.getPacket().getChatComponents().read(0);
+                        if(wrappedChatComponent != null){
+                            // New version
+                            jsonMessage = wrappedChatComponent.getJson();
+                        }
+
+                        BaseComponent[] messages = (jsonMessage != null) ? ComponentSerializer.parse(jsonMessage) : (BaseComponent[]) event.getPacket().getModifier().read(1);
+                        for(BaseComponent component : messages){
+                            component.setColor(ChatColor.GREEN);
+                            system.addExtra(component);
                         }
 
                         KiryuChat.playerChatManager.sendMessage(event.getPlayer().getUniqueId(), system);
