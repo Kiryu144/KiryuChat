@@ -1,0 +1,9 @@
+name: KiryuChat
+version: 1.0
+main: net.andrasia.kiryu144.kiryuchat.KiryuChat
+api-version: 1.14
+author: Kiryu144
+depend: [ProtocolLib]
+description: "MMO-Style Chat"
+commands:
+    chat:

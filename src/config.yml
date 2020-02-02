@@ -1,0 +1,18 @@
+chat:
+    channel:
+        side:
+            display: "Side"
+            permission: kiryuchat.channel.side
+        team:
+            display: "Team"
+            permission: kiryuchat.channel.team
+        help:
+            display: "Hilfe"
+            permission: kiryuchat.channel.help
+    layout:
+        channel_button:
+            normal: "§8[§7%s§8] "
+            selected: "§3[§b%s§3] "
+            unread: "§8[§e%s§8] "
+        messages:
+            player: "§b%s §r§7%s"
